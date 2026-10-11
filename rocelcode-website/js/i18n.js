@@ -366,11 +366,16 @@ function setRocelcodeLang(lang, { persist = true } = {}) {
   rocelcodeCurrentLang = lang;
   applyRocelcodeTranslations(lang);
 
-  document.querySelectorAll('.lang-btn').forEach((btn) => {
-    const isActive = btn.dataset.lang === lang;
-    btn.classList.toggle('active', isActive);
-    btn.setAttribute('aria-pressed', String(isActive));
-  });
+  const target = lang === 'es' ? 'en' : 'es';
+  const toggle = document.getElementById('langToggle');
+  const label = document.getElementById('langToggleLabel');
+  if (label) label.textContent = target.toUpperCase();
+  if (toggle) {
+    toggle.setAttribute(
+      'aria-label',
+      target === 'en' ? 'Translate to English' : 'Traducir al español'
+    );
+  }
 
   if (persist) {
     try { localStorage.setItem(ROCELCODE_LANG_STORAGE_KEY, lang); } catch { /* ignore */ }
@@ -380,24 +385,19 @@ function setRocelcodeLang(lang, { persist = true } = {}) {
 }
 
 function initRocelcodeI18n() {
+  // The site defaults to Spanish regardless of browser locale; it only
+  // switches when the visitor clicks the translate button (or already
+  // chose a language on a previous visit).
   let initialLang = 'es';
   try {
     const stored = localStorage.getItem(ROCELCODE_LANG_STORAGE_KEY);
-    if (stored === 'es' || stored === 'en') {
-      initialLang = stored;
-    } else if (navigator.language && navigator.language.toLowerCase().startsWith('en')) {
-      initialLang = 'en';
-    }
-  } catch {
-    if (navigator.language && navigator.language.toLowerCase().startsWith('en')) initialLang = 'en';
-  }
+    if (stored === 'es' || stored === 'en') initialLang = stored;
+  } catch { /* ignore */ }
 
   setRocelcodeLang(initialLang, { persist: false });
 
-  document.getElementById('langToggle')?.addEventListener('click', (e) => {
-    const btn = e.target.closest('.lang-btn');
-    if (!btn) return;
-    setRocelcodeLang(btn.dataset.lang);
+  document.getElementById('langToggle')?.addEventListener('click', () => {
+    setRocelcodeLang(rocelcodeCurrentLang === 'es' ? 'en' : 'es');
   });
 }
 
